@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int     @id
+  name      String
+  username  String
+  email     String  @unique
+  phone     String
+  website   String
+  address   Address @relation(fields: [addressId], references: [id])
+  addressId Int     @unique // Foreign key
+}
+
+model Address {
+  id      Int    @id @default(autoincrement())
+  street  String
+  suite   String
+  city    String
+  zipcode String
+  geo     Geo    @relation(fields: [geoId], references: [id])
+  geoId   Int    @unique // Foreign key
+  user    User?
+}
+
+model Geo {
+  id      Int      @id @default(autoincrement())
+  lat     String
+  lng     String
+  address Address?
+}
+
+model Order {
+  id                    String      @id
+  shipmentId            String
+  customerId            Int
+  customerName          String
+  status                String
+  address               String
+  estimatedDelivery     String
+  items                 OrderItem[]
+  warehouseLocation     Location    @relation("WarehouseLocation", fields: [warehouseLocationId], references: [id])
+  warehouseLocationId   Int
+  orderLocation         Location    @relation("OrderLocation", fields: [orderLocationId], references: [id])
+  orderLocationId       Int
+  destinationLocation   Location    @relation("DestinationLocation", fields: [destinationLocationId], references: [id])
+  destinationLocationId Int
+}
+
+model OrderItem {
+  id         Int    @id @default(autoincrement())
+  name       String
+  delivery   Order  @relation(fields: [deliveryId], references: [id])
+  deliveryId String
+}
+
+model Location {
+  id  Int   @id @default(autoincrement())
+  lat Float
+  lng Float
+
+  warehouseFor   Order[] @relation("WarehouseLocation")
+  orderFor       Order[] @relation("OrderLocation")
+  destinationFor Order[] @relation("DestinationLocation")
+}
