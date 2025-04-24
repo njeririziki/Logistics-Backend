@@ -48,7 +48,7 @@ model Order {
   shipmentId            String
   customerId            Int
   customerName          String
-  status                String
+  status                OrderStatus @default(PENDING)
   address               String
   estimatedDelivery     String
   items                 OrderItem[]
@@ -58,6 +58,8 @@ model Order {
   orderLocationId       Int
   destinationLocation   Location    @relation("DestinationLocation", fields: [destinationLocationId], references: [id])
   destinationLocationId Int
+
+  Delivery Delivery[]
 }
 
 model OrderItem {
@@ -75,4 +77,53 @@ model Location {
   warehouseFor   Order[] @relation("WarehouseLocation")
   orderFor       Order[] @relation("OrderLocation")
   destinationFor Order[] @relation("DestinationLocation")
+}
+
+model Delivery {
+  id                String          @id @default(uuid())
+  orderId           String          @unique
+  order             Order           @relation(fields: [orderId], references: [id])
+  deliveryPersonId  String?
+  // deliveryPerson    User?           @relation(fields: [deliveryPersonId], references: [id])
+  status            DeliveryStatus  @default(PENDING)
+  estimatedDelivery DateTime?
+  actualDelivery    DateTime?
+  trackingNumber    String          @unique
+  notes             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  trackingHistory   TrackingEvent[]
+}
+
+model TrackingEvent {
+  id         String         @id @default(uuid())
+  deliveryId String
+  delivery   Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  status     DeliveryStatus
+  location   String?
+  notes      String?
+  timestamp  DateTime       @default(now())
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+  DELIVERY_PERSON
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  PENDING
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
 }
