@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  output   = "../src/generated/client"
 }
 
 datasource db {
@@ -16,10 +16,15 @@ datasource db {
 
 
 model User {
-  id        Int     @id
+  id        String     @id @default(uuid())
   name      String
   username  String
   email     String @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
   phone     String
   website   String
   address   Address @relation(fields: [addressId], references: [id])
@@ -46,9 +51,13 @@ model Geo {
 }
 
 model Order {
-  id                   String   @id
-  shipmentId           String
-  customerId           Int
+ id  Int    @id @default(autoincrement())
+  shipmentId           String    @unique @default(uuid())
+  customer          User @relation(fields: [customerId], references: [id])
+  customerId           String
+  orderDate            DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
   customerName         String
   status          OrderStatus  @default(PENDING)
   address              String
@@ -68,7 +77,7 @@ model OrderItem {
   id         Int     @id @default(autoincrement())
   name       String
   delivery   Order @relation(fields: [deliveryId], references: [id])
-  deliveryId String
+  deliveryId Int
 }
 
 model Location {
@@ -84,7 +93,7 @@ model Location {
 model Delivery {
   id                String          @id @default(uuid())
   orderId           String          @unique
-  order             Order           @relation(fields: [orderId], references: [id])
+  order             Order           @relation(fields: [orderId], references: [shipmentId])
   deliveryPersonId  String?
   // deliveryPerson    User?           @relation(fields: [deliveryPersonId], references: [id])
   status            DeliveryStatus  @default(PENDING)
