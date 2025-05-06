@@ -24,13 +24,9 @@ export class UsersService {
       throw new ConflictException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-
     return this.prisma.user.create({
       data: {
         ...createUserDto,
-        password: hashedPassword,
-        role: 'USER', // Default role, adjust as needed
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -54,7 +50,7 @@ export class UsersService {
     });
   }
 
-  async findById(id: number): Promise<User> {
+  async findById(id: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
